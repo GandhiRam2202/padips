@@ -1,6 +1,75 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import emailjs from "@emailjs/nodejs";
+import jwt from "jsonwebtoken";
+
+
+
+
+/* ================= LOGIN ================= */
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1️⃣ Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
+    }
+
+    // 2️⃣ Find user
+    const user = await User.findOne({
+      email: email.toLowerCase().trim(),
+    });
+
+    // 3️⃣ Check user exists
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    // 4️⃣ Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    // 5️⃣ Generate JWT
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+      }
+    );
+
+    // 6️⃣ Send response
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+
+
+
 
 /* ================= REGISTER ================= */
 export const register = async (req, res) => {
