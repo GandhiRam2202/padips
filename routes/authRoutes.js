@@ -5,7 +5,9 @@ import {
   resetPassword,
   login,
   sendEmail,
+  getSyllabusBySubject,
 } from "../controllers/authController.js";
+import verifyTokenFromBody from "../middleware/verifyTokenFfromBody.js";
 
 const router = express.Router();
 
@@ -14,5 +16,6 @@ router.post("/login", login);
 router.post("/forgot-password", forgotPassword);     // Send OTP
 router.post("/reset-password", resetPassword);       // Verify OTP + reset
 router.post("/send-email", sendEmail);       // Verify OTP + reset
+router.post("/syllabus/:subject", verifyTokenFromBody, getSyllabusBySubject);
 
 export default router;

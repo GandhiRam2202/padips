@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import emailjs from "@emailjs/nodejs";
 import jwt from "jsonwebtoken";
+import Syllabus from "../models/Syllabus.js";
+
 
 
 
@@ -155,33 +157,33 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;
-
+    
     if (!email || !otp || !newPassword) {
       return res.status(400).json({ message: "Missing fields" });
     }
-
+    
     const user = await User.findOne({ email });
     if (!user)
       return res.status(404).json({ message: "User not found" });
-
+    
     if (!user.otp || !user.otpExpiry)
       return res.status(400).json({ message: "OTP not requested" });
-
+    
     if (user.otp !== otp)
       return res.status(401).json({ message: "Invalid OTP" });
-
+    
     if (user.otpExpiry < Date.now())
       return res.status(401).json({ message: "OTP expired" });
-
+    
     // 🔒 Update password
     user.password = await bcrypt.hash(newPassword, 10);
-
+    
     // 🧹 Clear OTP
     user.otp = null;
     user.otpExpiry = null;
-
+    
     await user.save();
-
+    
     res.status(200).json({
       success: true,
       message: "Password reset successful",
@@ -199,7 +201,7 @@ export const resetPassword = async (req, res) => {
 
 export const sendEmail = async (req, res) => {
   const { name, email, feedback } = req.body;
-
+  
   // ✅ Validation
   if (!name || !email || !feedback) {
     return res.status(400).json({
@@ -222,7 +224,7 @@ export const sendEmail = async (req, res) => {
         privateKey: process.env.EMAILJS_PRIVATE_KEY,
       }
     );
-
+    
     return res.status(200).json({
       success: true,
       msg: "Feedback email sent successfully",
@@ -230,11 +232,43 @@ export const sendEmail = async (req, res) => {
     });
   } catch (error) {
     console.error("EmailJS Error:", error);
-
+    
     return res.status(500).json({
       success: false,
       msg: "Email sending failed",
       error: error?.text || error,
+    });
+  }
+};
+
+/* ================= Syllabus get  ================= */
+
+
+
+export const getSyllabusBySubject = async (req, res) => {
+  try {
+    const { subject } = req.params;
+
+    const syllabus = await Syllabus.findOne({
+      subject: { $regex: `^${subject}$`, $options: "i" },
+    }).lean();
+
+    if (!syllabus) {
+      return res.status(404).json({
+        success: false,
+        message: "Syllabus not found for this subject",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: syllabus,
+    });
+  } catch (error) {
+    console.error("Syllabus Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch syllabus",
     });
   }
 };
