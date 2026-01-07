@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import emailjs from "@emailjs/nodejs";
 import jwt from "jsonwebtoken";
 import Syllabus from "../models/Syllabus.js";
+import mcq from "../models/mcq.js";
 
 
 
@@ -272,3 +273,24 @@ export const getSyllabusBySubject = async (req, res) => {
     });
   }
 };
+
+
+
+// controllers/questionController.js
+export const getAvailableYears = async (req, res) => {
+  try {
+    const years = await mcq.distinct("year");
+
+    return res.status(200).json({
+      success: true,
+      data: years.sort((a, b) => b - a),
+    });
+  } catch (error) {
+    console.error("Get Years Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch years",
+    });
+  }
+};
+
