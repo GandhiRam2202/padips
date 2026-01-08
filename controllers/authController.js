@@ -4,6 +4,7 @@ import emailjs from "@emailjs/nodejs";
 import jwt from "jsonwebtoken";
 import Syllabus from "../models/Syllabus.js";
 import mcq from "../models/mcq.js";
+import QuizResult from "../models/QuizResult.js";
 
 
 
@@ -325,6 +326,49 @@ export const getQuestionsByYear = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch questions",
+    });
+  }
+};
+
+
+
+export const submitQuiz = async (req, res) => {
+  try {
+    const { year, email, name, score } = req.body;
+
+    if (!year || !email || !name || score === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    // 🚫 Prevent re-attempt (one attempt per year)
+    const alreadyAttempted = await QuizResult.findOne({ year, email });
+
+    if (alreadyAttempted) {
+      return res.status(400).json({
+        success: false,
+        message: "Already attempted",
+      });
+    }
+
+    await QuizResult.create({
+      year,
+      email,
+      name,
+      score,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz submitted successfully",
+    });
+  } catch (error) {
+    console.error("Submit Quiz Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to submit quiz",
     });
   }
 };

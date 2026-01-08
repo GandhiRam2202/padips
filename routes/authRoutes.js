@@ -8,6 +8,7 @@ import {
   getSyllabusBySubject,
   getAvailableYears,
   getQuestionsByYear,
+  submitQuiz,
 } from "../controllers/authController.js";
 import verifyTokenFromBody from "../middleware/verifyTokenFfromBody.js";
 
@@ -20,6 +21,8 @@ router.post("/reset-password", resetPassword);       // Verify OTP + reset
 router.post("/send-email", sendEmail);       // Verify OTP + reset
 router.post("/syllabus/:subject", verifyTokenFromBody, getSyllabusBySubject);
 router.post("/questions/:year", verifyTokenFromBody, getQuestionsByYear);
+
+router.post("/quiz/submit", verifyTokenFromBody, submitQuiz);
 
 // routes/questionRoutes.js
 router.post("/years", verifyTokenFromBody, getAvailableYears);
