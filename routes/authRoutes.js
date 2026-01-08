@@ -9,6 +9,7 @@ import {
   getAvailableYears,
   getQuestionsByYear,
   submitQuiz,
+  checkQuizAttempt,
 } from "../controllers/authController.js";
 import verifyTokenFromBody from "../middleware/verifyTokenFfromBody.js";
 
@@ -26,6 +27,7 @@ router.post("/quiz/submit", verifyTokenFromBody, submitQuiz);
 
 // routes/questionRoutes.js
 router.post("/years", verifyTokenFromBody, getAvailableYears);
+router.post("/quiz/check", verifyTokenFromBody, checkQuizAttempt);
 
 
 export default router;
