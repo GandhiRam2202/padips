@@ -277,10 +277,12 @@ export const getSyllabusBySubject = async (req, res) => {
 
 
 // controllers/questionController.js
+
+
 export const getAvailableYears = async (req, res) => {
   try {
     const years = await mcq.distinct("year");
-
+    
     return res.status(200).json({
       success: true,
       data: years.sort((a, b) => b - a),
@@ -294,3 +296,33 @@ export const getAvailableYears = async (req, res) => {
   }
 };
 
+// controllers/questionController.js
+
+export const getQuestionsByYear = async (req, res) => {
+  try {
+    const { year } = req.params;
+
+    const questions = await mcq.find({ year: Number(year) })
+      .select("question options") // only what frontend needs
+      .sort({ _id: 1 })            // stable order
+      .lean();
+
+    if (!questions.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No questions found for this year",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: questions,
+    });
+  } catch (error) {
+    console.error("Question Fetch Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch questions",
+    });
+  }
+};

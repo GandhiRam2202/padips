@@ -7,6 +7,7 @@ import {
   sendEmail,
   getSyllabusBySubject,
   getAvailableYears,
+  getQuestionsByYear,
 } from "../controllers/authController.js";
 import verifyTokenFromBody from "../middleware/verifyTokenFfromBody.js";
 
@@ -18,6 +19,7 @@ router.post("/forgot-password", forgotPassword);     // Send OTP
 router.post("/reset-password", resetPassword);       // Verify OTP + reset
 router.post("/send-email", sendEmail);       // Verify OTP + reset
 router.post("/syllabus/:subject", verifyTokenFromBody, getSyllabusBySubject);
+router.post("/questions/:year", verifyTokenFromBody, getQuestionsByYear);
 
 // routes/questionRoutes.js
 router.post("/years", verifyTokenFromBody, getAvailableYears);
