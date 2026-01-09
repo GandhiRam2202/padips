@@ -405,3 +405,32 @@ export const checkQuizAttempt = async (req, res) => {
     });
   }
 };
+
+/* ✅ CHECK QUIZ ATTEMPT (IMPORTANT FIX) */
+export const quizDataProfile = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const attempt = await QuizResult.findOne({ year, email });
+
+    if (!attempt) {
+      return res.status(200).json({
+        success: true,
+        attempted: false,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      attempted: true,
+      score: attempt.score,
+      submittedAt: attempt.createdAt,
+    });
+  } catch (error) {
+    console.error("Check Quiz Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to check quiz status",
+    });
+  }
+};
