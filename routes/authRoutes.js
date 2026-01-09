@@ -11,6 +11,7 @@ import {
   submitQuiz,
   checkQuizAttempt,
   quizDataProfile,
+  quizLeaderboard,
 } from "../controllers/authController.js";
 import verifyTokenFromBody from "../middleware/verifyTokenFfromBody.js";
 
@@ -30,6 +31,7 @@ router.post("/quiz/submit", verifyTokenFromBody, submitQuiz);
 router.post("/years", verifyTokenFromBody, getAvailableYears);
 router.post("/quiz/check", verifyTokenFromBody, checkQuizAttempt);
 router.post("/quiz/profile", verifyTokenFromBody, quizDataProfile);
+router.post("/quiz/leaderboard", verifyTokenFromBody, quizLeaderboard);
 
 
 export default router;

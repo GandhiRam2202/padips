@@ -441,3 +441,49 @@ export const quizDataProfile = async (req, res) => {
     });
   }
 };
+
+
+
+//LeaderBoard
+
+
+export const quizLeaderboard = async (req, res) => {
+  try {
+    const leaderboard = await QuizResult.aggregate([
+      {
+        $group: {
+          _id: "$name",
+          totalScore: { $sum: "$score" },
+          test: { $sum: 1 },
+          avgScore: { $avg: "$score" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          totalScore: 1,
+          test: 1,
+          avgScore: { $round: ["$avgScore", 2] }
+        }
+      },
+      {
+        $sort: { avgScore: -1 } // 🔥 Leaderboard order
+      }
+    ]);
+    
+   
+    res.status(200).json({
+      success: true,
+      data: leaderboard
+      
+    });
+
+  } catch (error) {
+    console.error("Leaderboard Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate leaderboard"
+    });
+  }
+};
