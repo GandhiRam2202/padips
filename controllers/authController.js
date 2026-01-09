@@ -411,27 +411,33 @@ export const quizDataProfile = async (req, res) => {
   try {
     const { email } = req.body;
 
-    const attempt = await QuizResult.findOne({ email });
+    // ✅ Find ALL attempts for this user
+    const attempts = await QuizResult.find(
+      { email },
+      { year: 1, score: 1, createdAt: 1, _id: 0 }
+    ).sort({ year: 1 });
 
-    if (!attempt) {
+    // ✅ If no attempts found
+    if (!attempts || attempts.length === 0) {
       return res.status(200).json({
         success: true,
         attempted: false,
+        data: [],
       });
     }
 
+    // ✅ Return all attempts
     return res.status(200).json({
       success: true,
       attempted: true,
-      score: attempt.score,
-      year: attempt.year,
-      submittedAt: attempt.createdAt,
+      data: attempts,
     });
+
   } catch (error) {
-    console.error("Check Quiz Error:", error);
+    console.error("Quiz Profile Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to check quiz status",
+      message: "Failed to fetch quiz profile data",
     });
   }
 };
