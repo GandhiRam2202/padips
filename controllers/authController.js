@@ -411,7 +411,7 @@ export const quizDataProfile = async (req, res) => {
   try {
     const { email } = req.body;
 
-    const attempt = await QuizResult.findOne({ year, email });
+    const attempt = await QuizResult.findOne({ email });
 
     if (!attempt) {
       return res.status(200).json({
@@ -424,6 +424,7 @@ export const quizDataProfile = async (req, res) => {
       success: true,
       attempted: true,
       score: attempt.score,
+      year: attempt.year,
       submittedAt: attempt.createdAt,
     });
   } catch (error) {
