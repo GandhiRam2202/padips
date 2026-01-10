@@ -10,12 +10,12 @@ import {
   getQuestionsByYear,
   submitQuiz,
   checkQuizAttempt,
-  quizDataProfile,
-  quizLeaderboard,
   getAvailableTest,
   getQuestionsByTest,
   submitTest,
   checkTestAttempt,
+  testDataProfile,
+  testLeaderboard,
 } from "../controllers/authController.js";
 import verifyTokenFromBody from "../middleware/verifyTokenFfromBody.js";
 
@@ -35,12 +35,12 @@ router.post("/quiz/submit", verifyTokenFromBody, submitQuiz);
 // routes/questionRoutes.js
 router.post("/years", verifyTokenFromBody, getAvailableYears);
 router.post("/quiz/check", verifyTokenFromBody, checkQuizAttempt);
-router.post("/quiz/profile", verifyTokenFromBody, quizDataProfile);
-router.post("/quiz/leaderboard", verifyTokenFromBody, quizLeaderboard);
 
 router.post("/test", verifyTokenFromBody, getAvailableTest);
 router.post("/test/bytest", verifyTokenFromBody, getQuestionsByTest);
 router.post("/test/submit", verifyTokenFromBody, submitTest);
 router.post("/test/check", verifyTokenFromBody, checkTestAttempt);
+router.post("/test/profile", verifyTokenFromBody, testDataProfile);
+router.post("/test/leaderboard", verifyTokenFromBody, testLeaderboard);
 
 export default router;

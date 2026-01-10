@@ -408,87 +408,6 @@ export const checkQuizAttempt = async (req, res) => {
   }
 };
 
-/* ✅ CHECK QUIZ ATTEMPT (IMPORTANT FIX) */
-export const quizDataProfile = async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    // ✅ Find ALL attempts for this user
-    const attempts = await QuizResult.find(
-      { email },
-      { year: 1, score: 1, createdAt: 1, _id: 0 }
-    ).sort({ year: 1 });
-
-    // ✅ If no attempts found
-    if (!attempts || attempts.length === 0) {
-      return res.status(200).json({
-        success: true,
-        attempted: false,
-        data: [],
-      });
-    }
-
-    // ✅ Return all attempts
-    return res.status(200).json({
-      success: true,
-      attempted: true,
-      data: attempts,
-    });
-
-  } catch (error) {
-    console.error("Quiz Profile Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch quiz profile data",
-    });
-  }
-};
-
-
-
-//LeaderBoard
-
-
-export const quizLeaderboard = async (req, res) => {
-  try {
-    const leaderboard = await QuizResult.aggregate([
-      {
-        $group: {
-          _id: "$name",
-          totalScore: { $sum: "$score" },
-          test: { $sum: 1 },
-          avgScore: { $avg: "$score" }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          name: "$_id",
-          totalScore: 1,
-          test: 1,
-          avgScore: { $round: ["$avgScore", 2] }
-        }
-      },
-      {
-        $sort: { avgScore: -1 } // 🔥 Leaderboard order
-      }
-    ]);
-    
-   
-    res.status(200).json({
-      success: true,
-      data: leaderboard
-      
-    });
-
-  } catch (error) {
-    console.error("Leaderboard Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to generate leaderboard"
-    });
-  }
-};
 
 
 // controllers/questionController.js/testcount
@@ -659,6 +578,97 @@ export const checkTestAttempt = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to check test status",
+    });
+  }
+};
+
+
+
+/* ✅ TEST PROFILE DATA */
+export const testDataProfile = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    // ✅ Find ALL test attempts of the user
+    const attempts = await TestSubmit.find(
+      { email },
+      {
+        test: 1,
+        score: 1,
+        createdAt: 1,
+        _id: 0,
+      }
+    ).sort({ test: 1 });
+
+    // ✅ No attempts
+    if (!attempts.length) {
+      return res.status(200).json({
+        success: true,
+        attempted: false,
+        data: [],
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      attempted: true,
+      data: attempts,
+    });
+
+  } catch (error) {
+    console.error("Test Profile Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch test profile data",
+    });
+  }
+};
+
+
+/* 🏆 TEST LEADERBOARD */
+export const testLeaderboard = async (req, res) => {
+  try {
+    const leaderboard = await TestSubmit.aggregate([
+      {
+        $group: {
+          _id: "$email",          // ✅ group by user
+          name: { $first: "$name" },
+          totalScore: { $sum: "$score" },
+          tests: { $sum: 1 },
+          avgScore: { $avg: "$score" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          totalScore: 1,
+          tests: 1,
+          avgScore: { $round: ["$avgScore", 2] },
+        },
+      },
+      {
+        $sort: { avgScore: -1 }, // 🔥 Highest avg first
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: leaderboard,
+    });
+
+  } catch (error) {
+    console.error("Test Leaderboard Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to generate test leaderboard",
     });
   }
 };
