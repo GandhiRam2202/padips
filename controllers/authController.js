@@ -5,6 +5,8 @@ import jwt from "jsonwebtoken";
 import Syllabus from "../models/Syllabus.js";
 import mcq from "../models/mcq.js";
 import QuizResult from "../models/QuizResult.js";
+import testModel from "../models/testModel.js";
+import TestSubmit from "../models/TestSubmit.js";
 
 
 
@@ -313,7 +315,7 @@ export const getQuestionsByYear = async (req, res) => {
       });
     }
     
-    console.log(questions);
+    
     return res.status(200).json({
       success: true,
       
@@ -484,6 +486,179 @@ export const quizLeaderboard = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to generate leaderboard"
+    });
+  }
+};
+
+
+// controllers/questionController.js/testcount
+
+
+
+
+export const getAvailableTest = async (req, res) => {
+  try {
+    // ✅ Get all unique test numbers
+    const tests = await testModel.distinct("test");
+
+    return res.status(200).json({
+      success: true,
+      data: tests.sort((a, b) => a - b), // test 1,2,3...
+    });
+
+  } catch (error) {
+    console.error("Get Tests Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch tests",
+    });
+  }
+};
+
+//get questions by test number 
+export const getQuestionsByTest = async (req, res) => {
+  try {
+    const { test: testNo } = req.body; // ✅ rename body variable
+
+    if (testNo === undefined || isNaN(Number(testNo))) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid test number is required",
+      });
+    }
+
+    // ✅ USE MODEL (Test), NOT testNo
+    const questions = await testModel.find({ test: Number(testNo) });
+
+    if (!questions || questions.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No questions found for this test",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: questions,
+    });
+
+  } catch (error) {
+    console.error("Question Fetch By Test Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch questions by test",
+    });
+  }
+};
+
+
+
+//test submit
+
+
+
+export const submitTest = async (req, res) => {
+  try {
+    const { test, email, name, score } = req.body;
+
+    // ✅ Validation
+    if (
+      test === undefined ||
+      isNaN(Number(test)) ||
+      !email ||
+      !name ||
+      score === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing or invalid required fields",
+      });
+    }
+
+    // 🚫 Prevent re-attempt (one attempt per test)
+    const alreadyAttempted = await TestSubmit.findOne({
+      test: Number(test),
+      email,
+    });
+
+    if (alreadyAttempted) {
+      return res.status(400).json({
+        success: false,
+        message: "Test already attempted",
+      });
+    }
+
+    await TestSubmit.create({
+      test: Number(test),
+      email,
+      name,
+      score,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Test submitted successfully",
+    });
+
+  } catch (error) {
+    console.error("Submit Test Error:", error);
+
+    // ✅ Handle duplicate index error
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "Test already attempted",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to submit test",
+    });
+  }
+};
+
+
+
+// test chech attempts
+
+
+export const checkTestAttempt = async (req, res) => {
+  try {
+    const { test, email } = req.body;
+
+    // ✅ Validation
+    if (test === undefined || isNaN(Number(test)) || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid test number and email are required",
+      });
+    }
+
+    const attempt = await TestSubmit.findOne({
+      test: Number(test),
+      email,
+    });
+
+    if (!attempt) {
+      return res.status(200).json({
+        success: true,
+        attempted: false,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      attempted: true,
+      score: attempt.score,
+      submittedAt: attempt.createdAt,
+    });
+
+  } catch (error) {
+    console.error("Check Test Attempt Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to check test status",
     });
   }
 };

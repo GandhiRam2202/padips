@@ -12,6 +12,10 @@ import {
   checkQuizAttempt,
   quizDataProfile,
   quizLeaderboard,
+  getAvailableTest,
+  getQuestionsByTest,
+  submitTest,
+  checkTestAttempt,
 } from "../controllers/authController.js";
 import verifyTokenFromBody from "../middleware/verifyTokenFfromBody.js";
 
@@ -25,6 +29,7 @@ router.post("/send-email", sendEmail);       // Verify OTP + reset
 router.post("/syllabus/:subject", verifyTokenFromBody, getSyllabusBySubject);
 router.post("/questions/:year", verifyTokenFromBody, getQuestionsByYear);
 
+
 router.post("/quiz/submit", verifyTokenFromBody, submitQuiz);
 
 // routes/questionRoutes.js
@@ -33,5 +38,9 @@ router.post("/quiz/check", verifyTokenFromBody, checkQuizAttempt);
 router.post("/quiz/profile", verifyTokenFromBody, quizDataProfile);
 router.post("/quiz/leaderboard", verifyTokenFromBody, quizLeaderboard);
 
+router.post("/test", verifyTokenFromBody, getAvailableTest);
+router.post("/test/bytest", verifyTokenFromBody, getQuestionsByTest);
+router.post("/test/submit", verifyTokenFromBody, submitTest);
+router.post("/test/check", verifyTokenFromBody, checkTestAttempt);
 
 export default router;
