@@ -641,7 +641,7 @@ export const testLeaderboard = async (req, res) => {
           _id: "$email",          // ✅ group by user
           name: { $first: "$name" },
           totalScore: { $sum: "$score" },
-          tests: { $sum: 1 },
+          test: { $sum: 1 },
           avgScore: { $avg: "$score" },
         },
       },
@@ -650,7 +650,7 @@ export const testLeaderboard = async (req, res) => {
           _id: 0,
           name: 1,
           totalScore: 1,
-          tests: 1,
+          test: 1,
           avgScore: { $round: ["$avgScore", 2] },
         },
       },
