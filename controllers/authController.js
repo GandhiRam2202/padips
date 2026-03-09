@@ -120,17 +120,20 @@ export const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
 
     const user = await User.findOne({ email });
+
     if (!user)
       return res.status(404).json({ message: "User not found" });
 
-    // 🔢 Generate 6-digit OTP
+    // generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.otp = otp;
-    user.otpExpiry = Date.now() + 5 * 60 * 1000; // 5 mins
+
+    // IMPORTANT FIX
+    user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
     await user.save();
 
-    // 📧 Send OTP via EmailJS
     await emailjs.send(
       process.env.EMAILJS_SERVICE_ID,
       process.env.EMAILJS_TEMPLATE_ID,
@@ -149,57 +152,82 @@ export const forgotPassword = async (req, res) => {
       success: true,
       message: "OTP sent to email",
     });
+
   } catch (error) {
+
     console.error("Forgot password error:", error);
+
     res.status(500).json({
       message: "Failed to send OTP",
     });
+
   }
 };
 
 /* ================= VERIFY OTP & RESET ================= */
 export const resetPassword = async (req, res) => {
   try {
+
     const { email, otp, newPassword } = req.body;
-    
+
     if (!email || !otp || !newPassword) {
-      return res.status(400).json({ message: "Missing fields" });
+      return res.status(400).json({
+        message: "Missing fields",
+      });
     }
-    
+
     const user = await User.findOne({ email });
+
     if (!user)
-      return res.status(404).json({ message: "User not found" });
-    
-    if (!user.otp || !user.otpExpiry)
-      return res.status(400).json({ message: "OTP not requested" });
-    
-    if (user.otp !== otp)
-      return res.status(401).json({ message: "Invalid OTP" });
-    
-    if (user.otpExpiry < Date.now())
-      return res.status(401).json({ message: "OTP expired" });
-    
-    // 🔒 Update password
+      return res.status(404).json({
+        message: "User not found",
+      });
+
+    if (!user.otp || !user.otpExpiry) {
+      return res.status(400).json({
+        message: "OTP not requested",
+      });
+    }
+
+    // IMPORTANT FIX
+    // Convert both OTPs to string
+    if (String(user.otp) !== String(otp)) {
+      return res.status(401).json({
+        message: "Invalid OTP",
+      });
+    }
+
+    // FIX OTP EXPIRY CHECK
+    if (new Date(user.otpExpiry).getTime() < Date.now()) {
+      return res.status(401).json({
+        message: "OTP expired",
+      });
+    }
+
+    // hash password
     user.password = await bcrypt.hash(newPassword, 10);
-    
-    // 🧹 Clear OTP
+
+    // clear OTP
     user.otp = null;
     user.otpExpiry = null;
-    
+
     await user.save();
-    
+
     res.status(200).json({
       success: true,
       message: "Password reset successful",
     });
+
   } catch (error) {
+
     console.error("Reset password error:", error);
+
     res.status(500).json({
       message: "Failed to reset password",
     });
+
   }
 };
-
 
 
 
